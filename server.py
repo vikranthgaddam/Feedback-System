@@ -127,3 +127,32 @@ Note: You must handle any errors in the user input
 
     completion_rates, control_inputs, server_counts = closed_loop( target_completion_rate, initial_num_servers, num_iterations,controller_type)
     plot_data(completion_rates, control_inputs, server_counts)
+
+
+# def plot_data(completion_rates, control_inputs, server_counts):
+#     time_steps = list(range(len(completion_rates)))
+    
+#     fig, ax1 = plt.subplots(figsize=(10, 7))
+
+#     color = 'tab:blue'
+#     ax1.set_xlabel('Time Steps')
+#     ax1.set_ylabel('Completion Rate', color=color)
+#     ax1.plot(time_steps, completion_rates, label='Completion Rate', color=color)
+#     ax1.tick_params(axis='y', labelcolor=color)
+    
+#     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+#     color = 'tab:orange'
+#     ax2.set_ylabel('Control Input', color=color)  # we already handled the x-label with ax1
+#     ax2.plot(time_steps, control_inputs, label='Control Input', color=color)
+#     ax2.tick_params(axis='y', labelcolor=color)
+    
+#     ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+#     ax3.spines['right'].set_position(('outward', 60))  # Offset the right y-axis
+#     color = 'tab:green'
+#     ax3.set_ylabel('Server Instances', color=color)
+#     ax3.plot(time_steps, server_counts, label='Server Instances', color=color)
+#     ax3.tick_params(axis='y', labelcolor=color)
+    
+#     fig.tight_layout()  # to ensure the right y-label is not clipped
+#     plt.title('System Performance Over Time')
+#     plt.show()
