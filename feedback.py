@@ -65,8 +65,7 @@ class PIDController:
 
 # # ============================================================
 # # Loop functions
-# a, b ,rmse,r_squared= fb.static_test(ServerPool, (0, complete_work, generate_work),
-                 #   40, 40, 5, 5000) # max u, steps, trials, timesteps
+
 
 def static_test(target_ctor, ctor_args, umax, steps, repeats, tmax):
     u_values = []  # Array for u values
@@ -76,7 +75,7 @@ def static_test(target_ctor, ctor_args, umax, steps, repeats, tmax):
         u = float(i) * umax / float(steps)
         print("u values",u)
        # angle=(math.pi*2*i)/steps
-       # u=(math.sin(angle)+1)*0.5*umax
+        #u=(math.sin(angle)+1)*0.5*umax
         sum_y = 0.0
 
         for r in range(repeats):
@@ -99,8 +98,8 @@ def parameter_estimation(u_values, averaged_y_values):
     u_values = np.array(u_values)
     averaged_y_values = np.array(averaged_y_values)
 
-    mu_u = np.mean(u_values)
-    mu_y = np.mean(averaged_y_values)
+    mu_u = np.mean(u_values[:-1])
+    mu_y = np.mean(averaged_y_values[1:])
 
     
     u = u_values - mu_u

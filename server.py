@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
-from feedback import PController, PIController, PIDController
+from feedback import PController, PIController, PIDController 
+import feedback as fb
 
 '''
     Feedback structure code. You can use multiple source-codes for each of the controllers.
@@ -53,17 +54,23 @@ def complete_work():
     a, b = 20, 3
     return 100*random.betavariate(a, b)
 
+def static_test( traffic ):
+    def generate_work():
+        return random.gauss( traffic, traffic/200 )
+    a,b,rmse,r_squared=fb.static_test(ServerPool, (0, complete_work, generate_work),20, 20, 5, 1000) # max u, steps, trials, timesteps
+    print(a,b,rmse,r_squared)
+
 # Closed loop with PID
 def closed_loop(target_completion_rate, num_servers, num_iterations,controller_type):
     server_pool = ServerPool(num_servers, complete_work, generate_work)
     completion_rates = []
     control_inputs = []
     server_counts = []
-    #PI Controller Initialization
-    controller = PController(goal=target_completion_rate,p=3 )
+    #Controller Initialization
+    controller = PController(goal=target_completion_rate,p=2.4)
     piController = PIController(goal=target_completion_rate, p=0.6 , i=0.9, dt=1)
     pid_controller = PIDController(goal=target_completion_rate, p=0.31, i=1.01, d=0.23, dt=1)
-    current_output=0
+    current_output=num_servers
 
     for _ in range(num_iterations):
         if controller_type == 'p':
@@ -105,54 +112,39 @@ def plot_data(completion_rates, control_inputs, server_counts):
     plt.tight_layout()
     plt.show()
 
+import sys
+
+
 if __name__ == '__main__':
-    '''
-TA will only type "python server.py k N T C"
-k - Number of time steps to simulate
-N - Number of initial server instances
-T - Type of test (s, c) - s = static test, c = simulate feedback-based
-system
-C - Controller to run (p, pi, pid)
-p = proportional controller; pi = proportional-integral controller; pid =
-proportional-integral-derivative controller
-Note: You must handle any errors in the user input
-'''
+    # Check if the correct number of arguments is passed
+    if len(sys.argv) != 5:
+        print("Usage: python server.py k N T C")
+        sys.exit(1)
 
-    
-    global_time = 0  # Global time for generate_work function
-    controller_type = "p"  # Can be 'p', 'pi', or 'pid'
-    target_completion_rate = 0.9
-    num_iterations = 5000
-    initial_num_servers = 10
+    try:
+        # Parse command-line arguments
+        num_iterations = int(sys.argv[1])  # k - Number of time steps to simulate
+        initial_num_servers = int(sys.argv[2])  # N - Number of initial server instances
+        test_type = sys.argv[3]  # T - Type of test (s for static, c for closed-loop)
+        controller_type = sys.argv[4]  # C - Controller to run (p, pi, pid)
 
-    completion_rates, control_inputs, server_counts = closed_loop( target_completion_rate, initial_num_servers, num_iterations,controller_type)
-    plot_data(completion_rates, control_inputs, server_counts)
+        # Validate test type
+        if test_type not in ('s', 'c'):
+            raise ValueError("Invalid test type. Use 's' for static or 'c' for closed-loop.")
 
+        # Validate controller type
+        if controller_type not in ('p', 'pi', 'pid'):
+            raise ValueError("Invalid controller type. Use 'p', 'pi', or 'pid'.")
+        target_completion_rate = 0.9
+        global_time = 0
 
-# def plot_data(completion_rates, control_inputs, server_counts):
-#     time_steps = list(range(len(completion_rates)))
-    
-#     fig, ax1 = plt.subplots(figsize=(10, 7))
+        # Depending on the test type, run static test or closed-loop simulation
+        if test_type == 's':
+            static_test(1000)
+        else:
+            completion_rates, control_inputs, server_counts = closed_loop(target_completion_rate, initial_num_servers, num_iterations, controller_type)
+            plot_data(completion_rates, control_inputs, server_counts)
 
-#     color = 'tab:blue'
-#     ax1.set_xlabel('Time Steps')
-#     ax1.set_ylabel('Completion Rate', color=color)
-#     ax1.plot(time_steps, completion_rates, label='Completion Rate', color=color)
-#     ax1.tick_params(axis='y', labelcolor=color)
-    
-#     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-#     color = 'tab:orange'
-#     ax2.set_ylabel('Control Input', color=color)  # we already handled the x-label with ax1
-#     ax2.plot(time_steps, control_inputs, label='Control Input', color=color)
-#     ax2.tick_params(axis='y', labelcolor=color)
-    
-#     ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
-#     ax3.spines['right'].set_position(('outward', 60))  # Offset the right y-axis
-#     color = 'tab:green'
-#     ax3.set_ylabel('Server Instances', color=color)
-#     ax3.plot(time_steps, server_counts, label='Server Instances', color=color)
-#     ax3.tick_params(axis='y', labelcolor=color)
-    
-#     fig.tight_layout()  # to ensure the right y-label is not clipped
-#     plt.title('System Performance Over Time')
-#     plt.show()
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
